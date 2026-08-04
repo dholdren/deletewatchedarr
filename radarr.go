@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -28,15 +29,16 @@ func (r *RadarrClient) req(method, path string, q url.Values, body any) error {
 	if q != nil {
 		u.RawQuery = q.Encode()
 	}
-	var rdr *bytes.Reader
+	// Untyped nil io.Reader when there's no body — see sonarr.go for why.
+	var bodyReader io.Reader
 	if body != nil {
 		b, err := json.Marshal(body)
 		if err != nil {
 			return err
 		}
-		rdr = bytes.NewReader(b)
+		bodyReader = bytes.NewReader(b)
 	}
-	req, err := http.NewRequest(method, u.String(), rdr)
+	req, err := http.NewRequest(method, u.String(), bodyReader)
 	if err != nil {
 		return err
 	}

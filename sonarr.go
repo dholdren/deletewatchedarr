@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -28,15 +29,17 @@ func (s *SonarrClient) req(method, path string, q url.Values, body any) error {
 	if q != nil {
 		u.RawQuery = q.Encode()
 	}
-	var rdr *bytes.Reader
+	// Untyped nil io.Reader when there's no body — a typed-nil (*bytes.Reader)(nil)
+	// is a non-nil interface and makes http.NewRequest's internal *bytes.Reader
+	// type-switch dereference a nil pointer.
+	var bodyReader io.Reader
 	if body != nil {
 		b, err := json.Marshal(body)
 		if err != nil {
 			return err
 		}
-		rdr = bytes.NewReader(b)
+		bodyReader = bytes.NewReader(b)
 	}
-	var bodyReader = rdr
 	req, err := http.NewRequest(method, u.String(), bodyReader)
 	if err != nil {
 		return err
@@ -65,8 +68,7 @@ type sonarrSeries struct {
 func (s *SonarrClient) SeriesByTVDB(tvdbID string) (*sonarrSeries, error) {
 	u, _ := url.Parse(s.baseURL)
 	u.Path = "/api/v3/series"
-	q := url.Values{"tvdbId": {tvdbID}}
-	u.RawQuery = q.Encode()
+	u.RawQuery = url.Values{"tvdbId": {tvdbID}}.Encode()
 	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
 	req.Header.Set("X-Api-Key", s.apiKey)
 	resp, err := s.http.Do(req)
