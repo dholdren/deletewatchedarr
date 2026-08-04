@@ -1,0 +1,8 @@
+.git
+.github
+.gitignore
+*.md
+config.yaml
+config.local.yaml
+Dockerfile
+.dockerignore

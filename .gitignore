@@ -1,0 +1,14 @@
+# Binaries
+/deletewatchedarr
+/dwa
+*.exe
+
+# Local config / data
+config.yaml
+config.local.yaml
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
